@@ -1,30 +1,223 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>地图</title>
-    <meta name="viewport" content="width=100%, initial-scale=1.0, user-scalable=no">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<html>
+
+
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>gesture</title>
+    <!--    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">-->
+    <!--    <meta name="viewport" content="width=100%, initial-scale=1.0, user-scalable=no">-->
+    <meta name="viewport" content="width=640, maximum-scale=1.0, user-scalable=no"/>
+    <style>
+
+        #app {
+            position: absolute;
+            /*position: relative;*/
+            top: 150px;
+            /*left: 0px;*/
+            border: 2px solid;
+            width: 100%;
+            height: 550px;
+            /*overflow: hidden;*/
+            overflow: scroll;
+        }
+
+
+        .box {
+
+            touch-action: none;
+            position: absolute;
+            /*top:150px;*/
+
+            background-image: url("img/nop.jpg");
+
+            /*border: 1px solid black;*/
+            overflow: scroll;
+            width: 800px;
+            height: 800px;
+            background-size:100%;
+            background-repeat: no-repeat;
+            /*background-size:contain*/
+            /*transform:scale(2.0);*/
+
+        }
+        /*.ball{*/
+        /*    width:20px;*/
+        /*    height: 20px;*/
+        /*    background: red;*/
+        /*    border-radius: 50%;*/
+        /*    position: absolute;*/
+        /*}*/
+        .big {
+            cursor:pointer;
+        }
+        .big img{
+            width: 10%;
+            height: 10%;
+            float: left;
+            left: 50px;
+            margin-right: 300px;
+        }
+        .smalle img{
+            width: 10%;
+            height: 10%;
+        }
+
+    </style>
     <script src="js/zepto.min.js"></script>
     <script type="text/javascript" src="js/zepto.cookie.js"></script>
     <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/2.10.3/dingtalk.open.js"></script>
     <script src="https://res.wx.qq.com/open/libs/weuijs/1.0.0/weui.min.js"></script>
-    <style>
-        .box{
-            width: 100%;
-            height: 100%;
-        }
-      .box img{
-          transform:scale(2)
-      }
-    </style>
 </head>
-<body>
-    <div class="box" >
-        <img src="https://ss1.baidu.com/-4o3dSag_xI4khGko9WTAnF6hhy/image/w%3D500/sign=cfe520699c45d688a302b2a494c27dab/faedab64034f78f0fb2e73a977310a55b3191c46.jpg" style="width: 100%;
-    height:100%;">
 
+
+<body >
+<div id="app">
+    <!-- <embed src="http://10.0.0.5:90/File/Patient/0000084672_1/PDF/TiWenDan.pdf" type="application/pdf" internalinstanceid="4" class="box"> -->
+    <!-- -->
+    <div class="box" id="box">
+        <div class="container"></div>
     </div>
+    <!-- <img src="1.png" alt="" class="box"> -->
+</div>
+<div class="span" >
+    <div class="big" onclick="listenerBig()">
+        <span><img src="img/big.jpg" alt="" ></span>
+    </div>
+    <div class="smalle" onclick="listenerSmall()">
+        <span><img src="img/smile.jpg" alt=""></span>
+    </div>
+</div>
+<script>
+    var nub=1;
+    var pageX, pageY, initX, initY, isTouch = false;
+    var start = [];
+    document.addEventListener("touchstart", function (e) {
 
+
+        //手指按下时的手指所在的X，Y坐标
+        pageX = e.targetTouches[0].pageX;
+        pageY = e.targetTouches[0].pageY;
+
+        // console.log(pageX,pageY);
+
+        //初始位置的X，Y 坐标
+        initX = e.target.offsetLeft;
+        initY = e.target.offsetTop;
+
+
+        //记录初始 一组数据 作为缩放使用
+        if (e.touches.length >= 2) { //判断是否有两个点在屏幕上
+            start = e.touches; //得到第一组两个点
+        };
+
+
+        //表示手指已按下
+        isTouch = true;
+    }, false);
+
+    //监听 touchmove 事件 手指 移动时 做的事情
+    document.addEventListener("touchmove", function (e) {
+        e.preventDefault();
+        // 一根 手指 执行 目标元素移动 操作
+        if (e.touches.length == 1 && isTouch) {
+            // console.log(e.target.id=="box")
+            // var app = document.getElementsByClassName("app")
+            //移动目标的 X Y 坐标
+            var touchMoveX = e.targetTouches[0].pageX,
+                touchMoveY = e.targetTouches[0].pageY;
+            //设置当前点击元素的 top left 定位值
+            // var box=document.getElementsByClassName("box")
+            // if(e.target==$(".prev:is ('.box')")[0]){}
+            if (e.target.id=="box"){
+                e.target.style.left = parseInt(touchMoveX) - parseInt(pageX) + parseInt(initX) + "px";
+                e.target.style.top = parseInt(touchMoveY) - parseInt(pageY) + parseInt(initY) + "px";
+            }
+
+
+
+        };
+
+
+
+        // 2 根 手指执行 目标元素放大操作
+        if (e.touches.length >= 2 && isTouch && e.scale < 2.5) {
+
+
+            //得到第二组两个点
+            var now = e.touches;
+            //得到缩放比例， getDistance 是勾股定理的一个方法
+            var scale = (getDistance(now[0], now[1]) / getDistance(start[0], start[1]));//放大倍数
+            // 对缩放 比例 取整
+            e.scale = scale.toFixed(2);
+            // 执行目标元素的缩放操作
+            e.target.style.transform = "scale(" + scale + ")";
+            console.log(scale)
+        };
+
+
+    }, false);
+
+
+    //监听 手指离开屏幕时
+    document.addEventListener("touchend", function (e) {
+        //将 isTouch 修改为false  表示 手指已经离开屏幕
+        if (isTouch) {
+            isTouch = false;
+        }
+    }, false);
+
+    function listenerBig() {
+        var box=$(".box")
+        // transform:scale(2.0);
+
+        nub+=0.1;
+        console.log(nub)
+        // console.log(big)
+        if (nub<=100){
+            box.css("transform","scale(" + nub + ")")
+        }
+
+
+    }
+    function listenerSmall() {
+        var box=$(".box")
+        // transform:scale(2.0);
+
+        nub-=0.1;
+        // console.log(nub)
+        // console.log(big)
+        if (nub>=1){
+            box.css("transform","scale(" + nub + ")")
+        }else {
+            alert('已经是最小了')
+        }
+
+
+    }
+    //缩放 勾股定理方法
+    function getDistance(p1, p2) {
+        var x = p2.pageX - p1.pageX,
+            y = p2.pageY - p1.pageY;
+        return Math.sqrt((x * x) + (y * y));
+    };
+
+    $('.box').click(function(e){
+        var radius=10;//半径
+        var offset=$(this).offset();
+        console.log(nub)
+        var Y = parseInt((e.pageY-offset.top)/nub);
+        var X = parseInt((e.pageX-offset.left)/nub);
+        console.log(X,Y);
+        var top = e.pageY-offset.top-radius+"px";
+        var left = e.pageX-offset.left-radius+"px";
+        //$('.wrap').append('<div class="ball" style="top:'+top+';left:'+left+'"></div>');
+        $('.container').html('<div class="ball" style="top:'+top+';left:'+left+'"></div>');
+        // console.log("x___"+top+"y_____"+left);
+        // console.log(top,left)
+    })
+</script>
 </body>
+
+
 </html>
